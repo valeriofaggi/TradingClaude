@@ -1,0 +1,103 @@
+name: Stock Data Collection
+
+on:
+  # Schedule: Every 15 minutes from 7:00 to 17:00 UTC (covers Italian market hours 9:00-18:00 CET/CEST)
+  # Italian market: Mon-Fri 9:00-18:00 (UTC+1 winter, UTC+2 summer)
+  schedule:
+    - cron: '*/15 7-17 * * 1-5'  # Every 15 min, 7AM-5PM UTC, Mon-Fri
+
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+  # Trigger on push to main (for testing)
+  push:
+    branches:
+      - main
+    paths:
+      - 'collector/**'
+      - '.github/workflows/**'
+
+jobs:
+  collect-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better git operations
+
+      # Setup Python
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r collector/requirements.txt
+
+      # Run data collection
+      - name: Collect stock data
+        run: |
+          python collector/collect_data.py
+
+      # Configure git
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+
+      # Commit and push changes
+      - name: Commit and push data
+        run: |
+          git add data/ logs/
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            # Get current timestamp
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+            # Count updated files
+            FILES_CHANGED=$(git diff --staged --name-only | wc -l)
+
+            # Create commit message
+            git commit -m "🤖 Auto-update: Stock data collection
+
+Updated at: $TIMESTAMP
+Files changed: $FILES_CHANGED
+
+Automated by GitHub Actions"
+
+            # Push changes
+            git push
+
+            echo "✓ Changes committed and pushed successfully"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Summary
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## Data Collection Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Show recent log if exists
+          if [ -f logs/collection.log ]; then
+            echo "### Recent Collection Log" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            tail -n 5 logs/collection.log >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

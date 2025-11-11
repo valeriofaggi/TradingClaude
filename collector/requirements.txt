@@ -1,0 +1,6 @@
+# Minimal requirements for data collection in GitHub Actions
+# Keep this lightweight to reduce setup time
+
+pandas>=2.0.0
+yfinance>=0.2.40
+python-dotenv>=1.0.0

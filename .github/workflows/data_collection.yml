@@ -68,12 +68,7 @@ jobs:
             FILES_CHANGED=$(git diff --staged --name-only | wc -l)
 
             # Create commit message
-            git commit -m "🤖 Auto-update: Stock data collection
-
-Updated at: $TIMESTAMP
-Files changed: $FILES_CHANGED
-
-Automated by GitHub Actions"
+            git commit -m "🤖 Auto-update: Stock data collection - $TIMESTAMP - Files: $FILES_CHANGED"
 
             # Push changes
             git push

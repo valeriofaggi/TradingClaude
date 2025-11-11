@@ -57,8 +57,42 @@ st.markdown("""
     .negative {
         color: #ff0000;
     }
+
+    /* Tab navigation improvements - scrollable with arrows */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
+        gap: 1rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        scrollbar-width: thin;
+        scrollbar-color: #888 #f0f2f6;
+        padding: 0.5rem 0;
+    }
+
+    /* Scrollbar styling for webkit browsers */
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-track {
+        background: #f0f2f6;
+        border-radius: 10px;
+    }
+
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Make tabs more compact */
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
     }
 </style>
 """, unsafe_allow_html=True)
